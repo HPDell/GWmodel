@@ -13,6 +13,7 @@ build:
     only:
         refs:
           - master
+          - merge_requests
     script:
         - R CMD build GWmodel
     artifacts:
@@ -27,6 +28,7 @@ test_cran_ubuntu:
     only:
         refs:
           - master
+          - merge_requests
     script:
         - R CMD check GWmodel_$GWMODEL_VERSION.tar.gz --as-cran
     dependencies:
@@ -40,6 +42,7 @@ test_cran_debian:
     only:
         refs:
           - master
+          - merge_requests
     script:
         - R CMD check GWmodel_$GWMODEL_VERSION.tar.gz --as-cran
     dependencies:
@@ -53,6 +56,7 @@ test_cran_openSUSE:
     only:
         refs:
           - master
+          - merge_requests
     script:
         - R CMD check GWmodel_$GWMODEL_VERSION.tar.gz --as-cran
     dependencies:
@@ -66,6 +70,7 @@ test_cran_Fedora:
     only:
         refs:
           - master
+          - merge_requests
     script:
         - R CMD check GWmodel_$GWMODEL_VERSION.tar.gz --as-cran
     dependencies:
@@ -79,6 +84,7 @@ test_cran_macOS:
     only:
         refs:
           - master
+          - merge_requests
     script:
         - R CMD check GWmodel_$GWMODEL_VERSION.tar.gz --as-cran --no-manual
     dependencies:
@@ -92,6 +98,7 @@ test_cran_windows:
     only:
         refs:
           - master
+          - merge_requests
     script:
         - R.exe CMD check GWmodel_$GWMODEL_VERSION.tar.gz --as-cran --no-manual
     dependencies:
