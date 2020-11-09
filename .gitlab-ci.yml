@@ -71,6 +71,19 @@ test_cran_Fedora:
     dependencies:
         - build
 
+test_cran_macOS:
+    stage: test
+    tags:
+        - GWmodel
+        - macOS
+    only:
+        refs:
+          - master
+    script:
+        - R CMD check GWmodel_$GWMODEL_VERSION.tar.gz --as-cran --no-manual
+    dependencies:
+        - build
+
 test_cran_windows:
     stage: test
     tags:
