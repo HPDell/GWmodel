@@ -58,7 +58,7 @@ test_cran_openSUSE:
           - master
           - merge_requests
     script:
-        - R CMD check GWmodel_$GWMODEL_VERSION.tar.gz --as-cran
+        - R CMD check GWmodel_$GWMODEL_VERSION.tar.gz --as-cran --no-manual
     dependencies:
         - build
 
