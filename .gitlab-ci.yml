@@ -3,7 +3,7 @@ stages:
     - test
 
 variables:
-    GWMODEL_VERSION: 2.2-1
+    GWMODEL_VERSION: 2.2-2
 
 build:
     stage: build
