@@ -103,4 +103,18 @@ test_cran_windows:
         - R.exe CMD check GWmodel_$GWMODEL_VERSION.tar.gz --as-cran --no-manual
     dependencies:
         - build
+
+test_cran_cuda:
+    stage: test
+    tags:
+        - GWmodel
+        - CUDA
+    only:
+        refs:
+          - master
+          - merge_requests
+    script:
+        - CUDA_HOME=/usr/local/cuda R CMD check GWmodel_2.2-1.tar.gz --install-args=--configure-args=--enable-cuda=yes --no-manual
+    dependencies:
+        - build
         
