@@ -106,7 +106,7 @@ test_cran_cuda:
         - master
         - merge_requests
     script:
-        - CUDA_HOME=/usr/local/cuda R CMD check GWmodel_2.2-1.tar.gz --install-args=--configure-args=--enable-cuda=yes --no-manual
+        - CUDA_HOME=/usr/local/cuda R CMD check GWmodel_$GWMODEL_VERSION.tar.gz --install-args=--configure-args=--enable-cuda=yes --no-manual
     dependencies:
         - build
         
