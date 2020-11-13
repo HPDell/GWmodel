@@ -1,0 +1,112 @@
+stages:
+    - build
+    - test
+
+variables:
+    GWMODEL_VERSION: 2.2-2
+
+build:
+    stage: build
+    tags:
+        - GWmodel
+        - Ubuntu
+    only:
+        - master
+        - merge_requests
+    script:
+        - R CMD build GWmodel
+    artifacts:
+        paths:
+            - GWmodel_$GWMODEL_VERSION.tar.gz
+
+test_cran_ubuntu:
+    stage: test
+    tags:
+        - GWmodel
+        - Ubuntu
+    only:
+        - master
+        - merge_requests
+    script:
+        - R CMD check GWmodel_$GWMODEL_VERSION.tar.gz --as-cran
+    dependencies:
+        - build
+
+test_cran_debian:
+    stage: test
+    tags:
+        - GWmodel
+        - Debian
+    only:
+        - master
+        - merge_requests
+    script:
+        - R CMD check GWmodel_$GWMODEL_VERSION.tar.gz --as-cran
+    dependencies:
+        - build
+
+test_cran_openSUSE:
+    stage: test
+    tags:
+        - GWmodel
+        - openSUSE
+    only:
+        - master
+        - merge_requests
+    script:
+        - R CMD check GWmodel_$GWMODEL_VERSION.tar.gz --as-cran --no-manual
+    dependencies:
+        - build
+
+test_cran_Fedora:
+    stage: test
+    tags:
+        - GWmodel
+        - Fedora
+    only:
+        - master
+        - merge_requests
+    script:
+        - R CMD check GWmodel_$GWMODEL_VERSION.tar.gz --as-cran
+    dependencies:
+        - build
+
+test_cran_macOS:
+    stage: test
+    tags:
+        - GWmodel
+        - macOS
+    only:
+        - master
+        - merge_requests
+    script:
+        - R CMD check GWmodel_$GWMODEL_VERSION.tar.gz --as-cran --no-manual
+    dependencies:
+        - build
+
+test_cran_windows:
+    stage: test
+    tags:
+        - GWmodel
+        - Windows
+    only:
+        - master
+        - merge_requests
+    script:
+        - R.exe CMD check GWmodel_$GWMODEL_VERSION.tar.gz --as-cran --no-manual
+    dependencies:
+        - build
+
+test_cran_cuda:
+    stage: test
+    tags:
+        - GWmodel
+        - CUDA
+    only:
+        - master
+        - merge_requests
+    script:
+        - CUDA_HOME=/usr/local/cuda R CMD check GWmodel_$GWMODEL_VERSION.tar.gz --install-args=--configure-args=--enable-cuda=yes --no-manual
+    dependencies:
+        - build
+        
