@@ -1,6 +1,7 @@
 stages:
     - build
     - test
+    - deploy
 
 variables:
     GWMODEL_VERSION: 2.2-2
@@ -107,6 +108,18 @@ test_cran_cuda:
         - merge_requests
     script:
         - CUDA_HOME=/usr/local/cuda R CMD check GWmodel_$GWMODEL_VERSION.tar.gz --install-args=--configure-args=--enable-cuda=yes --no-manual
+    dependencies:
+        - build
+
+send_mail:
+    stage: deploy
+    tags:
+        - GWmodel
+        - Ubuntu
+    only:
+        - tags
+    script:
+        - GWMODEL_VERSION=$GWMODEL_VERSION /bin/bash $HOME/mail.sh
     dependencies:
         - build
         
