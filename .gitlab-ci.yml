@@ -29,6 +29,7 @@ test_cran_ubuntu:
     only:
         - master
         - merge_requests
+        - tags
     script:
         - R CMD check GWmodel_$GWMODEL_VERSION.tar.gz --as-cran
     dependencies:
@@ -42,6 +43,7 @@ test_cran_debian:
     only:
         - master
         - merge_requests
+        - tags
     script:
         - R CMD check GWmodel_$GWMODEL_VERSION.tar.gz --as-cran
     dependencies:
@@ -55,6 +57,7 @@ test_cran_openSUSE:
     only:
         - master
         - merge_requests
+        - tags
     script:
         - R CMD check GWmodel_$GWMODEL_VERSION.tar.gz --as-cran --no-manual
     dependencies:
@@ -68,6 +71,7 @@ test_cran_Fedora:
     only:
         - master
         - merge_requests
+        - tags
     script:
         - R CMD check GWmodel_$GWMODEL_VERSION.tar.gz --as-cran
     dependencies:
@@ -81,6 +85,7 @@ test_cran_macOS:
     only:
         - master
         - merge_requests
+        - tags
     script:
         - R CMD check GWmodel_$GWMODEL_VERSION.tar.gz --as-cran --no-manual
     dependencies:
@@ -94,6 +99,7 @@ test_cran_windows:
     only:
         - master
         - merge_requests
+        - tags
     script:
         - R.exe CMD check GWmodel_$GWMODEL_VERSION.tar.gz --as-cran --no-manual
     dependencies:
@@ -107,6 +113,7 @@ test_cran_cuda:
     only:
         - master
         - merge_requests
+        - tags
     script:
         - CUDA_HOME=/usr/local/cuda R CMD check GWmodel_$GWMODEL_VERSION.tar.gz --install-args=--configure-args=--enable-cuda=yes --no-manual
     dependencies:
