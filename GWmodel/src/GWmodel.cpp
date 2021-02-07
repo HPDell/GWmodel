@@ -756,7 +756,7 @@ vec gwr_diag1(vec y, mat x, mat beta, vec s_hat)
 {
 	double ss = rss(y, x, beta);
 	// vec s_hat = trhat2(S);
-	int n = x.n_rows;
+	double n = (double) x.n_rows;
 	// vec result(9);
 	vec result(8);
 	double AIC = n * log(ss / n) + n * log(2 * datum::pi) + n + s_hat(0);																//AIC
