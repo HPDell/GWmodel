@@ -727,7 +727,7 @@ double rss(vec y, mat X, mat beta)
 vec gwr_diag(vec y,mat x, mat beta, mat S) {
   double ss = rss(y,x,beta);
   vec s_hat = trhat2(S);
-  int n = S.n_rows;
+  double n = (double) S.n_rows;
   vec result(10);
   double AIC = n*log(ss/n)+n*log(2*datum::pi)+n+s_hat(0); //AIC
   double AICc = n*log(ss/n)+n*log(2*datum::pi)+n*((n+s_hat(0))/(n-2-s_hat(0))); //AICc
@@ -736,7 +736,7 @@ vec gwr_diag(vec y,mat x, mat beta, mat S) {
   double yss = sum(pow(y-mean(y),2)); //yss.g
   double r2 = 1 - ss/yss;
   double r2_adj = 1-(1-r2)*(n-1)/(edf-1);
-  double BIC = n * log(ss / n) + n * log(2 * datum::pi) + log(n) * s_hat(0);
+  double BIC = n * log(ss / n) + n * log(2.0 * datum::pi) + log(n) * s_hat(0);
   result(0) = AIC;
   result(1) = AICc;
   result(2) = edf;
@@ -766,7 +766,7 @@ vec gwr_diag1(vec y, mat x, mat beta, vec s_hat)
 	double yss = sum(pow(y - mean(y), 2));																															//yss.g
 	double r2 = 1 - ss / yss;
 	double r2_adj = 1 - (1 - r2) * (n - 1) / (edf - 1);
-  double BIC = n * log(ss / n) + n * log(2 * datum::pi) + log(n) * s_hat(0);
+  double BIC = n * log(ss / n) + n * log(2.0 * datum::pi) + log(n) * s_hat(0);
 	result(0) = AIC;
 	result(1) = AICc;
 	result(2) = edf;
