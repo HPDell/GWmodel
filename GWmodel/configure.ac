@@ -65,6 +65,7 @@ if test ${ENABLE_CUDA} -eq 1; then
 	CDEFS="-DCUDA_ACCE"
 	TARGET_CUDA_LIB="libgwmodelcuda.so"
 
+	CUDA_CXXFLAGS="-DCUDA_ACCE"
 	CUDA_LIBS="-L${CUDA_LIBDIR} -Wl,-rpath=${CUDA_LIBDIR} -lcudart -lcublas "
 	PKG_LIBS=${PKG_LIBS}"${CUDA_LIBS} -L${HOME}/.cache/GWmodel -Wl,-rpath=${HOME}/.cache/GWmodel  -lgwmodelcuda"
 	AC_SUBST(cu_sources)
@@ -75,6 +76,7 @@ if test ${ENABLE_CUDA} -eq 1; then
 	AC_SUBST(CDEFS)
 	AC_SUBST(TARGET_CUDA_LIB)
 	AC_SUBST(CUDA_LIBS)
+	AC_SUBST(CUDA_CXXFLAGS)
 fi
 
 
