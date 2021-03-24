@@ -31,7 +31,7 @@ extern SEXP GWmodel_gw_reg_all(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, S
 extern SEXP GWmodel_gw_reg_all_omp(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 extern SEXP GWmodel_gw_cv_all(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 extern SEXP GWmodel_gw_cv_all_omp(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
-extern SEXP GWmodel_gw_reg_cuda(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+extern SEXP GWmodel_gw_reg_cuda(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 extern SEXP GWmodel_gw_cv_all_cuda(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 extern SEXP GWmodel_e_vec(SEXP, SEXP);
 extern SEXP GWmodel_gwr_mixed_trace(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
@@ -67,7 +67,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"GWmodel_gw_reg_all_omp",    (DL_FUNC) &GWmodel_gw_reg_all_omp,    17},
     {"GWmodel_gw_cv_all",         (DL_FUNC) &GWmodel_gw_cv_all,         13},
     {"GWmodel_gw_cv_all_omp",     (DL_FUNC) &GWmodel_gw_cv_all_omp,     14},
-    {"GWmodel_gw_reg_cuda",       (DL_FUNC) &GWmodel_gw_reg_cuda,       16},
+    {"GWmodel_gw_reg_cuda",       (DL_FUNC) &GWmodel_gw_reg_cuda,       17},
     {"GWmodel_gw_cv_all_cuda",    (DL_FUNC) &GWmodel_gw_cv_all_cuda,    13},
 	{"GWmodel_e_vec",             (DL_FUNC) &GWmodel_e_vec,              2},
     {"GWmodel_gwr_mixed_trace",   (DL_FUNC) &GWmodel_gwr_mixed_trace,    7},
