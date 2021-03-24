@@ -298,7 +298,7 @@ bool CGWmodelCUDA::RegressionWithHatmatrixFtest(double p, double theta, bool lon
 			if (dm_given) { checkRegCudaErrors(cudaMemcpy(d_dists, (void *)dMat.col(i).colmem, sizeof(double) * N, cudaMemcpyHostToDevice)); }
 			else { checkRegCudaErrors(gw_dist_cuda(d_dp, d_rp, N, n, i, p, theta, longlat, rp_given, d_dists, maxThreads)); }
 			checkRegCudaErrors(gw_weight_cuda(bw, kernel, adaptive, d_dists, d_weights, N, 1, maxThreads));
-			//checkCudaErrors(cudaDeviceSynchronize());
+			////checkCudaErrors(cudaDeviceSynchronize());
 //#ifdef PRINT_CLOCKS
 //				clock_xtw += (clock() - clocki); clocki = clock();
 //#endif // PRINT_CLOCKS
@@ -313,7 +313,7 @@ bool CGWmodelCUDA::RegressionWithHatmatrixFtest(double p, double theta, bool lon
 #endif // PRINT_CLOCKS
 		}
 #ifdef PRINT_CLOCKS
-		checkRegCudaErrors(cudaDeviceSynchronize());
+		//checkRegCudaErrors(cudaDeviceSynchronize());
 		printf(time_format, (double)(clock() - clock1) / CLOCKS_PER_SEC); clock1 = clock();
 		//printf(time_format, (double)(clock_xtw) / CLOCKS_PER_SEC);
 		//printf(time_format, (double)(clock_gemm_xtw) / CLOCKS_PER_SEC);
@@ -323,7 +323,7 @@ bool CGWmodelCUDA::RegressionWithHatmatrixFtest(double p, double theta, bool lon
 		// Calculate inverse of xtwx
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~
 		checkRegCudaErrors(cublasDmatinvBatched(handle, K, d_xtwxA, K, d_xtwxRA, K, d_info, groupn));
-		checkRegCudaErrors(cudaDeviceSynchronize());
+		//checkRegCudaErrors(cudaDeviceSynchronize());
 #ifdef PRINT_CLOCKS
 		printf(time_format, (double)(clock() - clock1) / CLOCKS_PER_SEC); clock1 = clock();
 #endif // PRINT_CLOCKS
@@ -349,12 +349,12 @@ bool CGWmodelCUDA::RegressionWithHatmatrixFtest(double p, double theta, bool lon
 			// calculate ci, si
 			// ~~~~~~~~~~~~~~~~
 			checkRegCudaErrors(cublasDgemm(handle, CUBLAS_OP_T, CUBLAS_OP_T, N, K, K, &alpha, p_xtwA[e], K, p_xtwxRA[e], K, &beta, d_C, N));
-			checkRegCudaErrors(cudaDeviceSynchronize());
+			//checkRegCudaErrors(cudaDeviceSynchronize());
 #ifdef PRINT_CLOCKS
 			clock_gemm_S += (clock() - clocki); clocki = clock();
 #endif // PRINT_CLOCKS
 			checkRegCudaErrors(cublasDgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, N, 1, K, &alpha, d_C, N, p_xiA[i], K, &beta, d_S, N));
-			checkRegCudaErrors(cudaDeviceSynchronize());
+			//checkRegCudaErrors(cudaDeviceSynchronize());
 #ifdef PRINT_CLOCKS
 			clock_gemm_C += (clock() - clocki); clocki = clock();
 #endif // PRINT_CLOCKS
@@ -384,7 +384,7 @@ bool CGWmodelCUDA::RegressionWithHatmatrixFtest(double p, double theta, bool lon
 			// calculate diag(q)
 			// ~~~~~~~~~~~~~~~~~
 			checkRegCudaErrors(gw_qdiag_cuda(d_S, N, i, d_qdiag, maxThreads));
-			checkRegCudaErrors(cudaDeviceSynchronize());
+			//checkRegCudaErrors(cudaDeviceSynchronize());
 #ifdef PRINT_CLOCKS
 			clock_qdiag += (clock() - clocki); clocki = clock();
 #endif // PRINT_CLOCKS
@@ -607,7 +607,7 @@ bool CGWmodelCUDA::RegressionWithHatmatrix(double p, double theta, bool longlat,
 			if (dm_given) { checkRegCudaErrors(cudaMemcpy(d_dists, (void *)dMat.col(i).colmem, sizeof(double) * N, cudaMemcpyHostToDevice)); }
 			else { checkRegCudaErrors(gw_dist_cuda(d_dp, d_rp, N, n, i, p, theta, longlat, rp_given, d_dists, maxThreads)); }
 			checkRegCudaErrors(gw_weight_cuda(bw, kernel, adaptive, d_dists, d_weights, N, 1, maxThreads));
-			//checkCudaErrors(cudaDeviceSynchronize());
+			////checkCudaErrors(cudaDeviceSynchronize());
 //#ifdef PRINT_CLOCKS
 //				clock_xtw += (clock() - clocki); clocki = clock();
 //#endif // PRINT_CLOCKS
@@ -622,7 +622,7 @@ bool CGWmodelCUDA::RegressionWithHatmatrix(double p, double theta, bool longlat,
 #endif // PRINT_CLOCKS
 		}
 #ifdef PRINT_CLOCKS
-		checkRegCudaErrors(cudaDeviceSynchronize());
+		//checkRegCudaErrors(cudaDeviceSynchronize());
 		printf(time_format, (double)(clock() - clock1) / CLOCKS_PER_SEC); clock1 = clock();
 		//printf(time_format, (double)(clock_xtw) / CLOCKS_PER_SEC);
 		//printf(time_format, (double)(clock_gemm_xtw) / CLOCKS_PER_SEC);
@@ -632,7 +632,7 @@ bool CGWmodelCUDA::RegressionWithHatmatrix(double p, double theta, bool longlat,
 		// Calculate inverse of xtwx
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~
 		checkRegCudaErrors(cublasDmatinvBatched(handle, K, d_xtwxA, K, d_xtwxRA, K, d_info, groupn));
-		checkRegCudaErrors(cudaDeviceSynchronize());
+		//checkRegCudaErrors(cudaDeviceSynchronize());
 #ifdef PRINT_CLOCKS
 		printf(time_format, (double)(clock() - clock1) / CLOCKS_PER_SEC); clock1 = clock();
 #endif // PRINT_CLOCKS
@@ -658,12 +658,12 @@ bool CGWmodelCUDA::RegressionWithHatmatrix(double p, double theta, bool longlat,
 			// calculate ci, si
 			// ~~~~~~~~~~~~~~~~
 			checkRegCudaErrors(cublasDgemm(handle, CUBLAS_OP_T, CUBLAS_OP_T, N, K, K, &alpha, p_xtwA[e], K, p_xtwxRA[e], K, &beta, d_C, N));
-			checkRegCudaErrors(cudaDeviceSynchronize());
+			//checkRegCudaErrors(cudaDeviceSynchronize());
 #ifdef PRINT_CLOCKS
 			clock_gemm_S += (clock() - clocki); clocki = clock();
 #endif // PRINT_CLOCKS
 			checkRegCudaErrors(cublasDgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, N, 1, K, &alpha, d_C, N, p_xiA[i], K, &beta, d_S, N));
-			checkRegCudaErrors(cudaDeviceSynchronize());
+			//checkRegCudaErrors(cudaDeviceSynchronize());
 #ifdef PRINT_CLOCKS
 			clock_gemm_C += (clock() - clocki); clocki = clock();
 #endif // PRINT_CLOCKS
