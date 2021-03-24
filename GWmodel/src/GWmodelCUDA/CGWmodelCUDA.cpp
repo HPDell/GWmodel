@@ -755,11 +755,11 @@ bool CGWmodelCUDA::RegressionOnly(double p, double theta, bool longlat, double b
 	cudaDeviceProp devProp;
 	checkRegCudaErrors(cudaGetDeviceProperties(&devProp, gpuID));
 	int smNum = devProp.multiProcessorCount;
+	int maxThreads = devProp.maxThreadsPerBlock;
 	if (groupl <= 0)
 	{
-		groupl = (devProp.totalGlobalMem - RESERVE_GPU_MEM) / N / K / sizeof(double) / smNum * smNum;
+		groupl = smNum * maxThreads;
 	}
-	int maxThreads = devProp.maxThreadsPerBlock;
 
 #ifdef PRINT_CLOCKS
 	printf("GPU Device: %s. \t Group length: %d\n", devProp.name, groupl);
@@ -800,7 +800,7 @@ bool CGWmodelCUDA::RegressionOnly(double p, double theta, bool longlat, double b
 	// -----------------
 	// CUDA memory alloc
 	// -----------------
-	int groupl = smNum * maxThreads, groups = n / groupl + (n % groupl == 0 ? 0 : 1);
+	int groups = n / groupl + (n % groupl == 0 ? 0 : 1);
 #ifdef PRINT_CLOCKS
 	printf("%d Groups, %d items per group.\n", groups, groupl);
 #endif // PRINT_CLOCKS
