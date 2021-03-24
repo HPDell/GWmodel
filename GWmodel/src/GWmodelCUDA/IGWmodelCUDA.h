@@ -27,7 +27,7 @@ public:
 
 
 	virtual bool Regression(
-		bool hatmatrix,
+		bool hatmatrix, bool ftest,
 		double p, double theta, bool longlat,
 		double bw, int kernel, bool adaptive,
 		int groupl, int gpuID

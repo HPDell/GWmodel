@@ -12,7 +12,7 @@ void GWCUDA_Del(IGWmodelCUDA * pInstance)
 	delete pInstance;
 }
 
-bool gwr_reg_cuda(IGWmodelCUDA * pInstance, bool hatmatrix, double p, double theta, bool longlat, double bw, int kernel, bool adaptive, int groupl, int gpuID)
+bool gwr_reg_cuda(IGWmodelCUDA * pInstance, bool hatmatrix, bool ftest, double p, double theta, bool longlat, double bw, int kernel, bool adaptive, int groupl, int gpuID)
 {
-	return pInstance->Regression(hatmatrix, p, theta, longlat, bw, kernel, adaptive, groupl, gpuID);
+	return pInstance->Regression(hatmatrix, ftest, p, theta, longlat, bw, kernel, adaptive, groupl, gpuID);
 }

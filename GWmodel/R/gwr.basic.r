@@ -171,7 +171,7 @@ gwr.basic <- function(formula, data, regression.points, bw, kernel="bisquare", a
     } else {
       groupl <- ifelse(is(parallel.arg, "numeric"), parallel.arg, 16)
     }
-    reg.result <- gw_reg_all_cuda(x, y, dp.locat, rp.given, rp.locat, DM.given, dMat, hatmatrix, p, theta, longlat, bw, kernel, adaptive, groupl)
+    reg.result <- gw_reg_all_cuda(x, y, dp.locat, rp.given, rp.locat, DM.given, dMat, hatmatrix, F123.test, p, theta, longlat, bw, kernel, adaptive, groupl)
     if (is(reg.result, "logical") && reg.result == FALSE) {
       stop("Some CUDA errors occured.")
     } else {

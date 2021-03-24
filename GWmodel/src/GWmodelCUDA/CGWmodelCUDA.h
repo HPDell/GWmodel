@@ -8,17 +8,8 @@ using namespace arma;
 class CGWmodelCUDA : public IGWmodelCUDA
 {
 private:
-	mat x;
-	vec y;
-	mat dp;
-	mat rp;
-	mat dMat;
-	bool rp_given;
-	bool dm_given;
-	mat betas;
-	mat betasSE;
-	vec s_hat;
-	vec qdiag;
+	typedef bool (CGWmodelCUDA::*RegressionFunction)(double, double, bool, double, int, bool, int, int);
+
 public:
 	CGWmodelCUDA();
 	CGWmodelCUDA(int N, int K, bool rp_given, int n, bool dm_given);
@@ -38,7 +29,7 @@ public:
 
 
 	virtual bool Regression(
-		bool hatmatrix,
+		bool hatmatrix, bool ftest,
 		double p, double theta, bool longlat,
 		double bw, int kernel, bool adaptive,
 		int groupl, int gpuID
@@ -49,5 +40,38 @@ public:
 		double bw, int kernel, bool adaptive,
 		int groupl, int gpuID
 	);
+
+	bool RegressionWithHatmatrixFtest(
+		double p, double theta, bool longlat,
+		double bw, int kernel, bool adaptive,
+		int groupl, int gpuID
+	);
+
+	bool RegressionWithHatmatrix(
+		double p, double theta, bool longlat,
+		double bw, int kernel, bool adaptive,
+		int groupl, int gpuID
+	);
+
+	bool RegressionOnly(
+		double p, double theta, bool longlat,
+		double bw, int kernel, bool adaptive,
+		int groupl, int gpuID
+	);
+	
+private:
+	mat x;
+	vec y;
+	mat dp;
+	mat rp;
+	mat dMat;
+	bool rp_given;
+	bool dm_given;
+	mat betas;
+	mat betasSE;
+	vec s_hat;
+	vec qdiag;
+
+	RegressionFunction mRegressionFunction = &CGWmodelCUDA::RegressionOnly;
 
 };

@@ -116,7 +116,7 @@ gw_reg_all_omp <- function(x, y, dp.locat, rp.given, rp.locat, dm.given, dmat, h
         x, y, dp.locat, rp.given, rp.locat, dm.given, dmat, hatmatrix, p, theta, longlat, bw, kernel.id, adaptive, threads, ngroup, igroup - 1)
 }
 
-gw_reg_all_cuda <- function(x, y, dp.locat, rp.given, rp.locat, dm.given, dmat, hatmatrix, p, theta, longlat, bw, kernel, adaptive, groupl = 0, gpuID = 1) {
+gw_reg_all_cuda <- function(x, y, dp.locat, rp.given, rp.locat, dm.given, dmat, hatmatrix, ftest, p, theta, longlat, bw, kernel, adaptive, groupl = 0, gpuID = 1) {
   kernel.id <- switch (kernel,
                        gaussian = 0,
                        exponential = 1,
@@ -124,7 +124,7 @@ gw_reg_all_cuda <- function(x, y, dp.locat, rp.given, rp.locat, dm.given, dmat, 
                        tricube  = 3,
                        boxcar   = 4)
   .Call('GWmodel_gw_reg_cuda', PACKAGE = 'GWmodel', 
-        x, y, dp.locat, rp.given, rp.locat, dm.given, dmat, hatmatrix, p, theta, longlat, bw, kernel.id, adaptive, groupl, gpuID - 1)
+        x, y, dp.locat, rp.given, rp.locat, dm.given, dmat, hatmatrix, ftest, p, theta, longlat, bw, kernel.id, adaptive, groupl, gpuID - 1)
 }
 
 gw_cv_all <- function(x, y, dp.locat, dm.given, dmat, p, theta, longlat, bw, kernel, adaptive, ngroup = 1, igroup = 1) {

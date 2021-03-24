@@ -421,7 +421,7 @@ RcppExport SEXP GWmodel_gw_reg_all(SEXP xSEXP, SEXP ySEXP, SEXP dpSEXP, SEXP rp_
 }
 
 #ifdef CUDA_ACCE
-RcppExport SEXP GWmodel_gw_reg_cuda(SEXP xSEXP, SEXP ySEXP, SEXP dpSEXP, SEXP rp_givenSEXP, SEXP rpSEXP, SEXP dm_givenSEXP, SEXP dmatSEXP, SEXP hatmatrixSEXP, 
+RcppExport SEXP GWmodel_gw_reg_cuda(SEXP xSEXP, SEXP ySEXP, SEXP dpSEXP, SEXP rp_givenSEXP, SEXP rpSEXP, SEXP dm_givenSEXP, SEXP dmatSEXP, SEXP hatmatrixSEXP, SEXP ftestSEXP, 
                                    SEXP pSEXP, SEXP thetaSEXP, SEXP longlatSEXP, SEXP bwSEXP, SEXP kernelSEXP, SEXP adaptiveSEXP,
                                    SEXP ngroupSEXP, SEXP gpuIDSEXP) {
   BEGIN_RCPP
@@ -435,6 +435,7 @@ RcppExport SEXP GWmodel_gw_reg_cuda(SEXP xSEXP, SEXP ySEXP, SEXP dpSEXP, SEXP rp
   Rcpp::traits::input_parameter< bool >::type dm_given(dm_givenSEXP);
   Rcpp::traits::input_parameter< arma::mat >::type dMatT(dmatSEXP);
   Rcpp::traits::input_parameter< bool >::type hatmatrix(hatmatrixSEXP);
+  Rcpp::traits::input_parameter< bool >::type ftest(ftestSEXP);
   Rcpp::traits::input_parameter< double >::type p(pSEXP);
   Rcpp::traits::input_parameter< double >::type theta(thetaSEXP);
   Rcpp::traits::input_parameter< bool >::type longlat(longlatSEXP);
@@ -473,7 +474,7 @@ RcppExport SEXP GWmodel_gw_reg_cuda(SEXP xSEXP, SEXP ySEXP, SEXP dpSEXP, SEXP rp
     }
   }
   try {
-    bool gwr_status = cuda->Regression(hatmatrix, p, theta, longlat, bw, kernel, adaptive, ngroup, gpuID);
+    bool gwr_status = cuda->Regression(hatmatrix, ftest, p, theta, longlat, bw, kernel, adaptive, ngroup, gpuID);
     if (gwr_status) {
       if (hatmatrix) {
         mat betas(N, K, fill::zeros);
