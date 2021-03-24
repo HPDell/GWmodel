@@ -271,16 +271,17 @@ gwr.basic <- function(formula, data, regression.points, bw, kernel="bisquare", a
     betas.TV <- betas / betas.SE
     dybar2 <- (y - mean(y))^2
     dyhat2 <- (y - yhat)^2
-    if (DM.given) {
-      W <- gw.weight(dMat, bw, kernel, adaptive)
-      TSSw <- W %*% dybar2
-      RSSw <- W %*% dyhat2
-      local.R2 <- (TSSw - RSSw) / TSSw
-    } else {
-      dybar2 <- t(dybar2)
-      dyhat2 <- t(dyhat2)
-      local.R2 <- gw_local_r2(dp.locat, dybar2, dyhat2, DM.given, dMat, p, theta, longlat, bw, kernel, adaptive)
-    }
+    #if (DM.given) {
+    #  W <- gw.weight(dMat, bw, kernel, adaptive)
+    #  TSSw <- W %*% dybar2
+    #  RSSw <- W %*% dyhat2
+    #  local.R2 <- (TSSw - RSSw) / TSSw
+    #} else {
+    #  dybar2 <- t(dybar2)
+    #  dyhat2 <- t(dyhat2)
+    #  local.R2 <- gw_local_r2(dp.locat, dybar2, dyhat2, DM.given, dMat, p, theta, longlat, bw, kernel, adaptive)
+    #}
+    local.R2 <- NA
     AIC <- diags[1]
     AICc <- diags[2]
     edf <- diags[3]
