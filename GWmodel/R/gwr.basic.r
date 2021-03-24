@@ -179,7 +179,9 @@ gwr.basic <- function(formula, data, regression.points, bw, kernel="bisquare", a
       if (hatmatrix) {
         betas.SE = reg.result$betas.SE
         s_hat = reg.result$s_hat
-        q.diag = reg.result$q.diag
+        if (F123.test) {
+          q.diag = reg.result$q.diag
+        }
       }
     }
   } 

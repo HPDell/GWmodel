@@ -486,16 +486,26 @@ RcppExport SEXP GWmodel_gw_reg_cuda(SEXP xSEXP, SEXP ySEXP, SEXP dpSEXP, SEXP rp
             betas(r, c) = cuda->GetBetas(r, c);
             betasSE(r, c) = cuda->GetBetasSE(r, c);
           }
-          qdiag(r) = cuda->GetQdiag(r);
         }
         s_hat(0) = cuda->GetShat1();
         s_hat(1) = cuda->GetShat2();
-        __result = Rcpp::wrap(Rcpp::List::create(
-          Named("betas") = betas,
-          Named("betas.SE") = betasSE,
-          Named("s_hat") = s_hat,
-          Named("q.diag") = qdiag
-        ));
+        if (ftest) {
+          for (int r = 0; r < N; r++) {
+            qdiag(r) = cuda->GetQdiag(r);
+          }
+          __result = Rcpp::wrap(Rcpp::List::create(
+            Named("betas") = betas,
+            Named("betas.SE") = betasSE,
+            Named("s_hat") = s_hat,
+            Named("q.diag") = qdiag
+          ));
+        } else {
+          __result = Rcpp::wrap(Rcpp::List::create(
+            Named("betas") = betas,
+            Named("betas.SE") = betasSE,
+            Named("s_hat") = s_hat
+          ));
+        }
       } else {
         mat betas(n, K, fill::zeros);
         for (int r = 0; r < n; r++) {
