@@ -30,7 +30,7 @@ cudaError_t gw_coordinate_rotate_cuda(double* d_coords, int n, double theta, int
 {
 	cudaError_t error;
 	dim3 blockSize(threads), gridSize((n + blockSize.x - 1) / blockSize.x);
-	coordinate_rotate << <gridSize, blockSize >> > (d_coords, n, cos(theta), sin(theta));
+	coordinate_rotate <<<gridSize, blockSize>>>(d_coords, n, cos(theta), sin(theta));
 	error = cudaGetLastError();
 	if (error != cudaSuccess)
 	{
@@ -194,72 +194,63 @@ __global__ void sp_dist_mat_kernel(const double *dp, int ndp, const double *rp, 
 	dists[index] = sp_gcdist(ix, ox, iy, oy);
 }
 
-cudaError_t gw_dist_cuda(double *d_dp, double *d_rp, int ndp, int nrp, int focus, double p, double theta, bool longlat, bool rp_given, double *d_dists, int threads)
+cudaError_t gw_dist_cuda_sp(double *d_dp, double *d_rp, int ndp, int nrp, int focus, double p, double *d_dists, int threads)
 {
-	cudaError_t error;
-	int isFocus = focus > -1;
-	if (isFocus)
+	focus = (focus >= 0) ? focus : 0;
+	dim3 blockSize(threads), gridSize((ndp + blockSize.x - 1) / blockSize.x);
+	sp_dist_vec_kernel <<<gridSize, blockSize >>>(d_dp, ndp, d_rp, focus, nrp, d_dists);
+	return cudaGetLastError();
+}
+
+cudaError_t gw_dist_cuda_eu(double *d_dp, double *d_rp, int ndp, int nrp, int focus, double p, double *d_dists, int threads)
+{
+	focus = (focus >= 0) ? focus : 0;
+	dim3 blockSize(threads), gridSize((ndp + blockSize.x - 1) / blockSize.x);
+	eu_dist_vec_kernel <<<gridSize, blockSize>>>(d_dp, ndp, d_rp, focus, nrp, d_dists);
+	return cudaGetLastError();
+}
+
+cudaError_t gw_dist_cuda_cd(double *d_dp, double *d_rp, int ndp, int nrp, int focus, double p, double *d_dists, int threads)
+{
+	focus = (focus >= 0) ? focus : 0;
+	dim3 blockSize(threads), gridSize((ndp + blockSize.x - 1) / blockSize.x);
+	cd_dist_vec_kernel <<<gridSize, blockSize>>>(d_dp, ndp, d_rp, focus, nrp, d_dists);
+	return cudaGetLastError();
+}
+
+cudaError_t gw_dist_cuda_md(double *d_dp, double *d_rp, int ndp, int nrp, int focus, double p, double *d_dists, int threads)
+{
+	focus = (focus >= 0) ? focus : 0;
+	dim3 blockSize(threads), gridSize((ndp + blockSize.x - 1) / blockSize.x);
+	md_dist_vec_kernel <<<gridSize, blockSize>>>(d_dp, ndp, d_rp, focus, nrp, d_dists);
+	return cudaGetLastError();
+}
+
+cudaError_t gw_dist_cuda_mk(double *d_dp, double *d_rp, int ndp, int nrp, int focus, double p, double *d_dists, int threads)
+{
+	focus = (focus >= 0) ? focus : 0;
+	dim3 blockSize(threads), gridSize((ndp + blockSize.x - 1) / blockSize.x);
+	mk_dist_vec_kernel <<<gridSize, blockSize>>>(d_dp, ndp, d_rp, focus, nrp, p, d_dists);
+	return cudaGetLastError();
+}
+
+GW_DIST_FUNC gw_dist_cuda(bool longlat, double p)
+{
+	if (longlat)
 	{
-		dim3 blockSize(threads), gridSize((ndp + blockSize.x - 1) / blockSize.x);
-		if (longlat)
-		{
-			sp_dist_vec_kernel << <gridSize, blockSize >> > (d_dp, ndp, d_rp, focus, nrp, d_dists);
-		}
-		else
-		{
-			if (p == 2.0)
-				eu_dist_vec_kernel << <gridSize, blockSize >> > (d_dp, ndp, d_rp, focus, nrp, d_dists);
-			else if (p == 1.0)
-				cd_dist_vec_kernel << <gridSize, blockSize >> > (d_dp, ndp, d_rp, focus, nrp, d_dists);
-			else if (p == -1.0)
-				md_dist_vec_kernel << <gridSize, blockSize >> > (d_dp, ndp, d_rp, focus, nrp, d_dists);
-			else
-				mk_dist_vec_kernel << <gridSize, blockSize >> > (d_dp, ndp, d_rp, focus, nrp, p, d_dists);
-		}
+		return &gw_dist_cuda_sp;
 	}
 	else
 	{
-		if (rp_given)
-		{
-			dim3 blockSize(threads), gridSize((ndp * nrp + blockSize.x - 1) / blockSize.x);
-			if (longlat)
-				sp_dist_mat_kernel << <gridSize, blockSize >> > (d_dp, ndp, d_rp, nrp, d_dists);
-			else
-			{
-				if (p == 2.0)
-					eu_dist_mat_kernel << <gridSize, blockSize >> > (d_dp, ndp, d_rp, nrp, d_dists);
-				else if (p == 1.0)
-					cd_dist_mat_kernel << <gridSize, blockSize >> > (d_dp, ndp, d_rp, nrp, d_dists);
-				else if (p == -1.0)
-					md_dist_mat_kernel << <gridSize, blockSize >> > (d_dp, ndp, d_rp, nrp, d_dists);
-				else
-					mk_dist_mat_kernel << <gridSize, blockSize >> > (d_dp, ndp, d_rp, nrp, p, d_dists);
-			}
-		}
+		if (p == 2.0)
+			return &gw_dist_cuda_eu;
+		else if (p == 1.0)
+			return &gw_dist_cuda_cd;
+		else if (p == -1.0)
+			return &gw_dist_cuda_md;
 		else
-		{
-			dim3 blockSize(threads), gridSize((ndp * ndp + blockSize.x - 1) / blockSize.x);
-			if (longlat)
-				sp_dist_mat_kernel << <gridSize, blockSize >> > (d_dp, ndp, d_dp, ndp, d_dists);
-			else
-			{
-				if (p == 2.0)
-					eu_dist_mat_kernel << <gridSize, blockSize >> > (d_dp, ndp, d_dp, ndp, d_dists);
-				else if (p == 1.0)
-					cd_dist_mat_kernel << <gridSize, blockSize >> > (d_dp, ndp, d_dp, ndp, d_dists);
-				else if (p == -1.0)
-					md_dist_mat_kernel << <gridSize, blockSize >> > (d_dp, ndp, d_dp, ndp, d_dists);
-				else
-					mk_dist_mat_kernel << <gridSize, blockSize >> > (d_dp, ndp, d_dp, ndp, p, d_dists);
-			}
-		}
+			return &gw_dist_cuda_mk;
 	}
-	error = cudaGetLastError();
-	if (error != cudaSuccess)
-	{
-		return error;
-	}
-	return cudaSuccess;
 }
 
 __global__ void gw_weight_gaussian_kernel(const double *d_dists, double bw, double *d_weights, int n)
@@ -339,7 +330,7 @@ cudaError_t gw_weight_cuda(double bw, int kernel, bool adaptive, double *d_dists
 				thrust::sort(v_dists, v_dists + ndp);
 				// Calculate weight for each distance
 				double bw_dist = v_dists[(int)(bw < ndp ? bw : ndp) - 1];
-				(*kerf) << <gridSize, blockSize >> > (d_dists + f * ndp, bw_dist, d_weight + f * ndp, ndp);
+				(*kerf) <<<gridSize, blockSize>>>(d_dists + f * ndp, bw_dist, d_weight + f * ndp, ndp);
 				// Free d_dists_bak
 				cudaFree(d_dists_bak);
 				d_dists_bak = nullptr;
@@ -355,7 +346,7 @@ cudaError_t gw_weight_cuda(double bw, int kernel, bool adaptive, double *d_dists
 		default:
 		{
 			dim3 blockSize(threads), gridSize((ndp * nrp + blockSize.x - 1) / blockSize.x);
-			(*kerf) << <gridSize, blockSize >> > (d_dists, bw, d_weight, ndp * nrp);
+			(*kerf) <<<gridSize, blockSize>>>(d_dists, bw, d_weight, ndp * nrp);
 			error = cudaGetLastError();
 			if (error != cudaSuccess)
 			{
@@ -384,7 +375,7 @@ cudaError_t gw_xtw_cuda(const double* d_x, const double* d_weight, int n, int k,
 {
 	cudaError_t error;
 	dim3 blockSize(threads), gridSize((n + blockSize.x - 1) / blockSize.x);
-	gw_xtw_kernel << <gridSize, blockSize >> > (d_x, d_weight, n, k, d_xtw);
+	gw_xtw_kernel <<<gridSize, blockSize>>>(d_x, d_weight, n, k, d_xtw);
 	error = cudaGetLastError();
 	if (error != cudaSuccess)
 	{
@@ -405,7 +396,7 @@ cudaError_t gw_xdy_cuda(const double* d_x, const double* d_y, int n, double * d_
 {
 	cudaError_t error;
 	dim3 blockSize(threads), gridSize((n + blockSize.x - 1) / blockSize.x);
-	gw_xdy_kernel << <gridSize, blockSize >> > (d_x, d_y, n, d_xdoty);
+	gw_xdy_kernel <<<gridSize, blockSize>>>(d_x, d_y, n, d_xdoty);
 	error = cudaGetLastError();
 	if (error != cudaSuccess)
 	{
@@ -426,7 +417,7 @@ cudaError_t gw_xdx_cuda(const double* d_x, int n, double * d_xdotx, int threads)
 {
 	cudaError_t error;
 	dim3 blockSize(threads), gridSize((n + blockSize.x - 1) / blockSize.x);
-	gw_xdx_kernel << <gridSize, blockSize >> > (d_x, n, d_xdotx);
+	gw_xdx_kernel <<<gridSize, blockSize>>>(d_x, n, d_xdotx);
 	error = cudaGetLastError();
 	if (error != cudaSuccess)
 	{
@@ -446,7 +437,7 @@ cudaError_t gw_qdiag_cuda(const double* d_si, int n, int p, double* d_q, int thr
 {
 	cudaError_t error;
 	dim3 blockSize(threads), gridSize((n + blockSize.x - 1) / blockSize.x);
-	gw_qdiag_kernel << <gridSize, blockSize >> > (d_si, n, p, d_q);
+	gw_qdiag_kernel <<<gridSize, blockSize>>>(d_si, n, p, d_q);
 	error = cudaGetLastError();
 	if (error != cudaSuccess)
 	{

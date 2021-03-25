@@ -2,6 +2,7 @@
 #include <armadillo>
 
 #include "IGWmodelCUDA.h"
+#include "GWmodelKernel.h"
 
 using namespace arma;
 
@@ -73,5 +74,4 @@ private:
 	vec qdiag;
 
 	RegressionFunction mRegressionFunction = &CGWmodelCUDA::RegressionOnly;
-
 };

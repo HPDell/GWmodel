@@ -9,7 +9,6 @@
 
 #include "helper.h"
 #include "CGWmodelCUDA.h"
-#include "GWmodelKernel.h"
 #ifdef ENABLE_PREVIEW
 #include "preview.h"
 #endif // ENABLE_PREVIEW
@@ -187,6 +186,9 @@ bool CGWmodelCUDA::RegressionWithHatmatrixFtest(double p, double theta, bool lon
 		}
 	}
 
+	// set dist function
+	GW_DIST_FUNC dist_function = gw_dist_cuda(longlat, p);
+
 	// =========================
 	// Regression with hatmatrix
 	// =========================
@@ -296,7 +298,7 @@ bool CGWmodelCUDA::RegressionWithHatmatrixFtest(double p, double theta, bool lon
 			// Calculate dist, weight, xtw
 			// ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 			if (dm_given) { checkRegCudaErrors(cudaMemcpy(d_dists, (void *)dMat.col(i).colmem, sizeof(double) * N, cudaMemcpyHostToDevice)); }
-			else { checkRegCudaErrors(gw_dist_cuda(d_dp, d_rp, N, n, i, p, theta, longlat, rp_given, d_dists, maxThreads)); }
+			else { checkRegCudaErrors(dist_function(d_dp, d_rp, N, n, i, p, d_dists, maxThreads)); }
 			checkRegCudaErrors(gw_weight_cuda(bw, kernel, adaptive, d_dists, d_weights, N, 1, maxThreads));
 			////checkCudaErrors(cudaDeviceSynchronize());
 //#ifdef PRINT_CLOCKS
@@ -496,6 +498,9 @@ bool CGWmodelCUDA::RegressionWithHatmatrix(double p, double theta, bool longlat,
 		}
 	}
 
+	// set dist function
+	GW_DIST_FUNC dist_function = gw_dist_cuda(longlat, p);
+
 	// =========================
 	// Regression with hatmatrix
 	// =========================
@@ -605,7 +610,7 @@ bool CGWmodelCUDA::RegressionWithHatmatrix(double p, double theta, bool longlat,
 			// Calculate dist, weight, xtw
 			// ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 			if (dm_given) { checkRegCudaErrors(cudaMemcpy(d_dists, (void *)dMat.col(i).colmem, sizeof(double) * N, cudaMemcpyHostToDevice)); }
-			else { checkRegCudaErrors(gw_dist_cuda(d_dp, d_rp, N, n, i, p, theta, longlat, rp_given, d_dists, maxThreads)); }
+			else { checkRegCudaErrors(dist_function(d_dp, d_rp, N, n, i, p, d_dists, maxThreads)); }
 			checkRegCudaErrors(gw_weight_cuda(bw, kernel, adaptive, d_dists, d_weights, N, 1, maxThreads));
 			////checkCudaErrors(cudaDeviceSynchronize());
 //#ifdef PRINT_CLOCKS
@@ -772,6 +777,9 @@ bool CGWmodelCUDA::RegressionOnly(double p, double theta, bool longlat, double b
 	cublasHandle_t handle;
 	cublasCreate(&handle);
 
+	// set dist function
+	GW_DIST_FUNC dist_function = gw_dist_cuda(longlat, p);
+
 	// ====================
 	// Armadillo Precompute
 	// ====================
@@ -870,7 +878,7 @@ bool CGWmodelCUDA::RegressionOnly(double p, double theta, bool longlat, double b
 			clock_t clocki = clock();
 #endif // PRINT_CLOCKS
 			if (dm_given) { checkRegCudaErrors(cudaMemcpy(d_dists, (void *)dMat.col(i).colmem, sizeof(double) * N, cudaMemcpyHostToDevice)); }
-			else { checkRegCudaErrors(gw_dist_cuda(d_dp, d_rp, N, n, i, p, theta, longlat, rp_given, d_dists, maxThreads)); }
+			else { checkRegCudaErrors(dist_function(d_dp, d_rp, N, n, i, p, d_dists, maxThreads)); }
 			checkRegCudaErrors(gw_weight_cuda(bw, kernel, adaptive, d_dists, d_weights, N, 1, maxThreads));
 			checkRegCudaErrors(gw_xtw_cuda(d_x, d_weights, N, K, d_xtw, maxThreads));
 			checkRegCudaErrors(cublasDgemm(handle, CUBLAS_OP_N, CUBLAS_OP_T, K, K, N, &one, d_xtw, K, d_x, K, &zero, p_xtwxA[e], K));
@@ -968,6 +976,9 @@ double CGWmodelCUDA::CV(double p, double theta, bool longlat, double bw, int ker
 	cublasHandle_t handle;
 	cublasCreate(&handle);
 
+	// set dist function
+	GW_DIST_FUNC dist_function = gw_dist_cuda(longlat, p);
+
 	// ====================
 	// Armadillo Precompute
 	// ====================
@@ -1060,7 +1071,7 @@ double CGWmodelCUDA::CV(double p, double theta, bool longlat, double bw, int ker
 			clock_t clocki = clock();
 #endif // PRINT_CLOCKS
 			if (dm_given) { checkCvCudaErrors(cudaMemcpy(d_dists, (void *)dMat.col(i).colmem, sizeof(double) * N, cudaMemcpyHostToDevice)); }
-			else { checkCvCudaErrors(gw_dist_cuda(d_dp, d_dp, N, n, i, p, theta, longlat, rp_given, d_dists, maxThreads)); }
+			else { checkCvCudaErrors(dist_function(d_dp, d_dp, N, n, i, p, d_dists, maxThreads)); }
 			checkCvCudaErrors(gw_weight_cuda(bw, kernel, adaptive, d_dists, d_weights, N, 1, maxThreads));
 			checkCvCudaErrors(cudaMemcpy(d_weights + i, &zero, sizeof(double), cudaMemcpyHostToDevice));
 			checkCvCudaErrors(gw_xtw_cuda(d_x, d_weights, N, K, d_xtw, maxThreads));
