@@ -5,6 +5,8 @@ if(WIN32 AND NOT MSVC)
     message(FATAL_ERROR "CUDA only support MSVC complier on Windows!")
 endif(WIN32 AND NOT MSVC)
 
+option(ENABLE_TEST "Weather to build test program" off)
+
 find_package(Armadillo REQUIRED)
 include_directories(${ARMADILLO_INCLUDE_DIRS})
 
@@ -30,8 +32,13 @@ set(HEADERS
     IGWmodelCUDA.h
 )
 
+if(NOT ENABLE_TEST)
+    add_library(GWmodelCUDA64 SHARED ${SOURCES_CUDA} ${SOURCES_CXX} ${HEADERS}) 
+else(NOT ENABLE_TEST)
+    add_library(GWmodelCUDA64 STATIC ${SOURCES_CUDA} ${SOURCES_CXX} ${HEADERS}) 
+endif(NOT ENABLE_TEST)
 
-add_library(GWmodelCUDA64 SHARED ${SOURCES_CUDA} ${SOURCES_CXX} ${HEADERS})
+
 set_property(TARGET GWmodelCUDA64 PROPERTY CUDA_ARCHITECTURES 35 37 52 60 61 70 75)
 target_link_libraries(GWmodelCUDA64 PRIVATE 
     ${CUDA_LIBRARIES}
@@ -48,3 +55,7 @@ add_custom_command(TARGET GWmodelCUDA64 POST_BUILD
 add_custom_command(TARGET GWmodelCUDA64 POST_BUILD 
     COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_LINKER_FILE:GWmodelCUDA64> "${CMAKE_CURRENT_SOURCE_DIR}"
 )
+
+if(ENABLE_TEST)
+    add_subdirectory(${CMAKE_SOURCE_DIR}/test)
+endif(ENABLE_TEST)
