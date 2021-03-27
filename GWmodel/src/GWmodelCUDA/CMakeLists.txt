@@ -35,7 +35,7 @@ set(HEADERS
 if(NOT ENABLE_TEST)
     add_library(GWmodelCUDA64 SHARED ${SOURCES_CUDA} ${SOURCES_CXX} ${HEADERS}) 
 else(NOT ENABLE_TEST)
-    add_library(GWmodelCUDA64 STATIC ${SOURCES_CUDA} ${SOURCES_CXX} ${HEADERS}) 
+    add_library(GWmodelCUDA64 STATIC ${SOURCES_CUDA} ${SOURCES_CXX} preview.cpp ${HEADERS} preview.h) 
 endif(NOT ENABLE_TEST)
 
 

@@ -19,7 +19,7 @@ int main() {
     mat dp = coord, rp = coord;
     bool hatmatrix = true, rp_given = false, dm_given = false, ftest = false, longlat = false, adaptive = false;
     double p = 2.0, theta = 0.0, bw = 10000;
-    int kernel = 0, ngroup = 64, gpuID = 0;
+    int kernel = 0, ngroup = 32, gpuID = 0;
 
     CGWmodelCUDA* cuda = new CGWmodelCUDA(N, K, rp_given, n, dm_given);
     for (int r = 0; r < N; r++) {
