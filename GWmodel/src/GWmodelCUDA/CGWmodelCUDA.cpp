@@ -149,9 +149,6 @@ bool CGWmodelCUDA::RegressionWithHatmatrixFtest(double p, double theta, bool lon
 	}
 	int maxThreads = devProp.maxThreadsPerBlock;
 
-#ifdef PRINT_CLOCKS
-	printf("GPU Device: %s. \t Group length: %d\n", devProp.name, groupl);
-#endif // PRINT_CLOCKS
 
 
 	// ============
@@ -258,31 +255,8 @@ bool CGWmodelCUDA::RegressionWithHatmatrixFtest(double p, double theta, bool lon
 	// ----------------
 	// Begin regression
 	// ----------------
-#ifdef PRINT_CLOCKS
-	printf("%d Groups, %d items per group.\n", groups, groupl);
-	clock_t clock0, clock1;
-	const char* time_format = "%8.2lfs";
-	printf("%14s", " ");
-	printf("%9s", "xtw");
-	//printf("%9s", "gemm");
-	printf("%9s", "Matinv");
-	printf("%9s", "beta");
-	printf("%9s", "S");
-	printf("%9s", "C");
-	printf("%9s", "betaSE");
-	printf("%9s", "s_hat");
-	printf("%9s", "q_diag");
-	printf("%9s", "Total");
-	printf("\n");
-#endif
 	for (size_t g = 0; g < groups; g++)
 	{
-#ifdef PRINT_CLOCKS
-		printf("Group %6d: ", g);
-		clock0 = clock();
-		clock1 = clock0;
-		clock_t clock_xtw = 0, clock_gemm_xtw = 0;
-#endif // PRINT_CLOCKS
 		size_t begin = g * groupl, end = g == (groups - 1) ? n : (g + 1) * groupl, groupn = end - begin;
 		double alpha = 1.0, beta = 0.0;
 		// ~~~~~~~~~~~~~~~~~~~~
@@ -291,9 +265,6 @@ bool CGWmodelCUDA::RegressionWithHatmatrixFtest(double p, double theta, bool lon
 		for (int i = begin; i < end; i++)
 		{
 			size_t e = i - begin;
-#ifdef PRINT_CLOCKS
-			//clock_t clocki = clock();
-#endif // PRINT_CLOCKS
 			// ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 			// Calculate dist, weight, xtw
 			// ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -301,34 +272,18 @@ bool CGWmodelCUDA::RegressionWithHatmatrixFtest(double p, double theta, bool lon
 			else { checkRegCudaErrors(dist_function(d_dp, d_rp, N, n, i, p, d_dists, maxThreads)); }
 			checkRegCudaErrors(gw_weight_cuda(bw, kernel, adaptive, d_dists, d_weights, N, 1, maxThreads));
 			////checkCudaErrors(cudaDeviceSynchronize());
-//#ifdef PRINT_CLOCKS
-//				clock_xtw += (clock() - clocki); clocki = clock();
-//#endif // PRINT_CLOCKS
 			// ~~~~~~~~~~~~~~~~~~~~
 			// Calculate xtwx, xtwy
 			// ~~~~~~~~~~~~~~~~~~~~
 			checkRegCudaErrors(cublasDdgmm(handle, CUBLAS_SIDE_RIGHT, K, N, d_x, K, d_weights, 1, p_xtwA[e], K));
 			checkRegCudaErrors(cublasDgemm(handle, CUBLAS_OP_N, CUBLAS_OP_T, K, K, N, &alpha, p_xtwA[e], K, d_x, K, &beta, p_xtwxA[e], K));
 			checkRegCudaErrors(cublasDgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, K, 1, N, &alpha, p_xtwA[e], K, d_y, N, &beta, p_xtwyA[e], K));
-#ifdef PRINT_CLOCKS
-			//clock_gemm_xtw += (clock() - clocki);
-#endif // PRINT_CLOCKS
 		}
-#ifdef PRINT_CLOCKS
-		//checkRegCudaErrors(cudaDeviceSynchronize());
-		printf(time_format, (double)(clock() - clock1) / CLOCKS_PER_SEC); clock1 = clock();
-		//printf(time_format, (double)(clock_xtw) / CLOCKS_PER_SEC);
-		//printf(time_format, (double)(clock_gemm_xtw) / CLOCKS_PER_SEC);
-		clock1 = clock();
-#endif // PRINT_CLOCKS
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~
 		// Calculate inverse of xtwx
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~
 		checkRegCudaErrors(cublasDmatinvBatched(handle, K, d_xtwxA, K, d_xtwxRA, K, d_info, groupn));
 		//checkRegCudaErrors(cudaDeviceSynchronize());
-#ifdef PRINT_CLOCKS
-		printf(time_format, (double)(clock() - clock1) / CLOCKS_PER_SEC); clock1 = clock();
-#endif // PRINT_CLOCKS
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 		// Calculate Diagnosis Information
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -336,30 +291,18 @@ bool CGWmodelCUDA::RegressionWithHatmatrixFtest(double p, double theta, bool lon
 		for (size_t i = begin; i < end; i++)
 		{
 			size_t e = i - begin;
-#ifdef PRINT_CLOCKS
-			clock_t clocki = clock();
-#endif // PRINT_CLOCKS
 			// ~~~~~~~~~~~~~~
 			// Calculate beta
 			// ~~~~~~~~~~~~~~
 			checkRegCudaErrors(cublasDgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, K, 1, K, &alpha, p_xtwxRA[e], K, p_xtwyA[e], K, &beta, p_betaA[e], K));
 			checkRegCudaErrors(cudaMemcpy((void *)betas.colptr(i), p_betaA[e], sizeof(double) * K, cudaMemcpyDeviceToHost));
-#ifdef PRINT_CLOCKS
-			clock_beta += (clock() - clocki); clocki = clock();
-#endif // PRINT_CLOCKS
 			// ~~~~~~~~~~~~~~~~
 			// calculate ci, si
 			// ~~~~~~~~~~~~~~~~
 			checkRegCudaErrors(cublasDgemm(handle, CUBLAS_OP_T, CUBLAS_OP_T, N, K, K, &alpha, p_xtwA[e], K, p_xtwxRA[e], K, &beta, d_C, N));
 			//checkRegCudaErrors(cudaDeviceSynchronize());
-#ifdef PRINT_CLOCKS
-			clock_gemm_S += (clock() - clocki); clocki = clock();
-#endif // PRINT_CLOCKS
 			checkRegCudaErrors(cublasDgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, N, 1, K, &alpha, d_C, N, p_xiA[i], K, &beta, d_S, N));
 			//checkRegCudaErrors(cudaDeviceSynchronize());
-#ifdef PRINT_CLOCKS
-			clock_gemm_C += (clock() - clocki); clocki = clock();
-#endif // PRINT_CLOCKS
 			// ~~~~~~~~~~~~~~~~~
 			// calculate betasSE
 			// ~~~~~~~~~~~~~~~~~
@@ -368,9 +311,6 @@ bool CGWmodelCUDA::RegressionWithHatmatrixFtest(double p, double theta, bool lon
 			{
 				checkRegCudaErrors(cublasDdot(handle, N, d_C + j * N, 1, d_C + j * N, 1, betaSE + K));
 			}
-#ifdef PRINT_CLOCKS
-			clock_betasSE += (clock() - clocki); clocki = clock();
-#endif // PRINT_CLOCKS
 			// ~~~~~~~~~~~~~~~
 			// calculate s_hat
 			// ~~~~~~~~~~~~~~~
@@ -379,29 +319,12 @@ bool CGWmodelCUDA::RegressionWithHatmatrixFtest(double p, double theta, bool lon
 			checkRegCudaErrors(cublasDdot(handle, N, d_S, 1, d_S, 1, &s2));
 			s_hat(0) += s1;
 			s_hat(1) += s2;
-#ifdef PRINT_CLOCKS
-			clock_s_hat += (clock() - clocki); clocki = clock();
-#endif // PRINT_CLOCKS
 			// ~~~~~~~~~~~~~~~~~
 			// calculate diag(q)
 			// ~~~~~~~~~~~~~~~~~
 			checkRegCudaErrors(gw_qdiag_cuda(d_S, N, i, d_qdiag, maxThreads));
 			//checkRegCudaErrors(cudaDeviceSynchronize());
-#ifdef PRINT_CLOCKS
-			clock_qdiag += (clock() - clocki); clocki = clock();
-#endif // PRINT_CLOCKS
 		}
-#ifdef PRINT_CLOCKS
-		printf(time_format, (double)(clock_beta) / CLOCKS_PER_SEC);
-		printf(time_format, (double)(clock_gemm_S) / CLOCKS_PER_SEC);
-		printf(time_format, (double)(clock_gemm_C) / CLOCKS_PER_SEC);
-		printf(time_format, (double)(clock_betasSE) / CLOCKS_PER_SEC);
-		printf(time_format, (double)(clock_s_hat) / CLOCKS_PER_SEC);
-		printf(time_format, (double)(clock_qdiag) / CLOCKS_PER_SEC);
-
-		printf(time_format, (double)(clock() - clock0) / CLOCKS_PER_SEC);
-		printf("\n");
-#endif // PRINT_CLOCKS
 	}
 	checkRegCudaErrors(cudaMemcpy((double *)qdiag.mem, d_qdiag, sizeof(double) * N * 1, cudaMemcpyDeviceToHost));
 
@@ -461,9 +384,6 @@ bool CGWmodelCUDA::RegressionWithHatmatrix(double p, double theta, bool longlat,
 	}
 	int maxThreads = devProp.maxThreadsPerBlock;
 
-#ifdef PRINT_CLOCKS
-	printf("GPU Device: %s. \t Group length: %d\n", devProp.name, groupl);
-#endif // PRINT_CLOCKS
 
 
 	// ============
@@ -570,31 +490,8 @@ bool CGWmodelCUDA::RegressionWithHatmatrix(double p, double theta, bool longlat,
 	// ----------------
 	// Begin regression
 	// ----------------
-#ifdef PRINT_CLOCKS
-	printf("%d Groups, %d items per group.\n", groups, groupl);
-	clock_t clock0, clock1;
-	const char* time_format = "%8.2lfs";
-	printf("%14s", " ");
-	printf("%9s", "xtw");
-	//printf("%9s", "gemm");
-	printf("%9s", "Matinv");
-	printf("%9s", "beta");
-	printf("%9s", "S");
-	printf("%9s", "C");
-	printf("%9s", "betaSE");
-	printf("%9s", "s_hat");
-	printf("%9s", "q_diag");
-	printf("%9s", "Total");
-	printf("\n");
-#endif
 	for (size_t g = 0; g < groups; g++)
 	{
-#ifdef PRINT_CLOCKS
-		printf("Group %6d: ", g);
-		clock0 = clock();
-		clock1 = clock0;
-		clock_t clock_xtw = 0, clock_gemm_xtw = 0;
-#endif // PRINT_CLOCKS
 		size_t begin = g * groupl, end = g == (groups - 1) ? n : (g + 1) * groupl, groupn = end - begin;
 		double alpha = 1.0, beta = 0.0;
 		// ~~~~~~~~~~~~~~~~~~~~
@@ -637,10 +534,6 @@ bool CGWmodelCUDA::RegressionWithHatmatrix(double p, double theta, bool longlat,
 		// Calculate inverse of xtwx
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~
 		checkRegCudaErrors(cublasDmatinvBatched(handle, K, d_xtwxA, K, d_xtwxRA, K, d_info, groupn));
-		//checkRegCudaErrors(cudaDeviceSynchronize());
-#ifdef PRINT_CLOCKS
-		printf(time_format, (double)(clock() - clock1) / CLOCKS_PER_SEC); clock1 = clock();
-#endif // PRINT_CLOCKS
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 		// Calculate Diagnosis Information
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -648,30 +541,18 @@ bool CGWmodelCUDA::RegressionWithHatmatrix(double p, double theta, bool longlat,
 		for (size_t i = begin; i < end; i++)
 		{
 			size_t e = i - begin;
-#ifdef PRINT_CLOCKS
-			clock_t clocki = clock();
-#endif // PRINT_CLOCKS
 			// ~~~~~~~~~~~~~~
 			// Calculate beta
 			// ~~~~~~~~~~~~~~
 			checkRegCudaErrors(cublasDgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, K, 1, K, &alpha, p_xtwxRA[e], K, p_xtwyA[e], K, &beta, p_betaA[e], K));
 			checkRegCudaErrors(cudaMemcpy((void *)betas.colptr(i), p_betaA[e], sizeof(double) * K, cudaMemcpyDeviceToHost));
-#ifdef PRINT_CLOCKS
-			clock_beta += (clock() - clocki); clocki = clock();
-#endif // PRINT_CLOCKS
 			// ~~~~~~~~~~~~~~~~
 			// calculate ci, si
 			// ~~~~~~~~~~~~~~~~
 			checkRegCudaErrors(cublasDgemm(handle, CUBLAS_OP_T, CUBLAS_OP_T, N, K, K, &alpha, p_xtwA[e], K, p_xtwxRA[e], K, &beta, d_C, N));
 			//checkRegCudaErrors(cudaDeviceSynchronize());
-#ifdef PRINT_CLOCKS
-			clock_gemm_S += (clock() - clocki); clocki = clock();
-#endif // PRINT_CLOCKS
 			checkRegCudaErrors(cublasDgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, N, 1, K, &alpha, d_C, N, p_xiA[i], K, &beta, d_S, N));
 			//checkRegCudaErrors(cudaDeviceSynchronize());
-#ifdef PRINT_CLOCKS
-			clock_gemm_C += (clock() - clocki); clocki = clock();
-#endif // PRINT_CLOCKS
 			// ~~~~~~~~~~~~~~~~~
 			// calculate betasSE
 			// ~~~~~~~~~~~~~~~~~
@@ -680,9 +561,6 @@ bool CGWmodelCUDA::RegressionWithHatmatrix(double p, double theta, bool longlat,
 			{
 				checkRegCudaErrors(cublasDdot(handle, N, d_C + j * N, 1, d_C + j * N, 1, betaSE + K));
 			}
-#ifdef PRINT_CLOCKS
-			clock_betasSE += (clock() - clocki); clocki = clock();
-#endif // PRINT_CLOCKS
 			// ~~~~~~~~~~~~~~~
 			// calculate s_hat
 			// ~~~~~~~~~~~~~~~
@@ -691,21 +569,7 @@ bool CGWmodelCUDA::RegressionWithHatmatrix(double p, double theta, bool longlat,
 			checkRegCudaErrors(cublasDdot(handle, N, d_S, 1, d_S, 1, &s2));
 			s_hat(0) += s1;
 			s_hat(1) += s2;
-#ifdef PRINT_CLOCKS
-			clock_s_hat += (clock() - clocki); clocki = clock();
-#endif // PRINT_CLOCKS
 		}
-#ifdef PRINT_CLOCKS
-		printf(time_format, (double)(clock_beta) / CLOCKS_PER_SEC);
-		printf(time_format, (double)(clock_gemm_S) / CLOCKS_PER_SEC);
-		printf(time_format, (double)(clock_gemm_C) / CLOCKS_PER_SEC);
-		printf(time_format, (double)(clock_betasSE) / CLOCKS_PER_SEC);
-		printf(time_format, (double)(clock_s_hat) / CLOCKS_PER_SEC);
-		printf(time_format, (double)(clock_qdiag) / CLOCKS_PER_SEC);
-
-		printf(time_format, (double)(clock() - clock0) / CLOCKS_PER_SEC);
-		printf("\n");
-#endif // PRINT_CLOCKS
 	}
 	checkRegCudaErrors(cudaMemcpy((double *)qdiag.mem, d_qdiag, sizeof(double) * N * 1, cudaMemcpyDeviceToHost));
 
@@ -766,9 +630,6 @@ bool CGWmodelCUDA::RegressionOnly(double p, double theta, bool longlat, double b
 		groupl = smNum * maxThreads;
 	}
 
-#ifdef PRINT_CLOCKS
-	printf("GPU Device: %s. \t Group length: %d\n", devProp.name, groupl);
-#endif // PRINT_CLOCKS
 
 
 	// ============
@@ -809,9 +670,6 @@ bool CGWmodelCUDA::RegressionOnly(double p, double theta, bool longlat, double b
 	// CUDA memory alloc
 	// -----------------
 	int groups = n / groupl + (n % groupl == 0 ? 0 : 1);
-#ifdef PRINT_CLOCKS
-	printf("%d Groups, %d items per group.\n", groups, groupl);
-#endif // PRINT_CLOCKS
 
 	// Single matrix
 	double *d_x, *d_y, *d_xtw, *d_dists, *d_weights;
@@ -842,19 +700,6 @@ bool CGWmodelCUDA::RegressionOnly(double p, double theta, bool longlat, double b
 	int *d_info;
 	checkRegCudaErrors(cudaMalloc((void **)&d_info, sizeof(int) * groupl));
 
-#ifdef PRINT_CLOCKS
-	// clocks
-	// ------
-	clock_t clock0 = clock();
-	const char* time_format = "%10.2lfs";
-	printf("%13s", " ");
-	printf("%11s", "xtw");
-	printf("%11s", "gemm");
-	printf("%11s", "Matinv");
-	printf("%11s", "beta");
-	printf("%11s", "Total");
-	printf("\n");
-#endif // PRINT_CLOCKS
 
 	// ----------------
 	// Begin regression
@@ -867,36 +712,20 @@ bool CGWmodelCUDA::RegressionOnly(double p, double theta, bool longlat, double b
 		// ~~~~~~~~~~~~~~~~~~~
 		// Calculate xtwx xtwy
 		// ~~~~~~~~~~~~~~~~~~~
-#ifdef PRINT_CLOCKS
-		printf("Group %5d: ", g);
-		clock_t clock1 = clock(), clock_gemm = 0;
-#endif
 		for (int i = begin; i < end; i++)
 		{
 			size_t e = i - begin;
-#ifdef PRINT_CLOCKS
-			clock_t clocki = clock();
-#endif // PRINT_CLOCKS
 			if (dm_given) { checkRegCudaErrors(cudaMemcpy(d_dists, (void *)dMat.col(i).colmem, sizeof(double) * N, cudaMemcpyHostToDevice)); }
 			else { checkRegCudaErrors(dist_function(d_dp, d_rp, N, n, i, p, d_dists, maxThreads)); }
 			checkRegCudaErrors(gw_weight_cuda(bw, kernel, adaptive, d_dists, d_weights, N, 1, maxThreads));
 			checkRegCudaErrors(gw_xtw_cuda(d_x, d_weights, N, K, d_xtw, maxThreads));
 			checkRegCudaErrors(cublasDgemm(handle, CUBLAS_OP_N, CUBLAS_OP_T, K, K, N, &one, d_xtw, K, d_x, K, &zero, p_xtwxA[e], K));
 			checkRegCudaErrors(cublasDgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, K, 1, N, &one, d_xtw, K, d_y, N, &zero, p_xtwyA[e], K));
-#ifdef PRINT_CLOCKS
-			clock_gemm += (clock() - clocki); clocki = clock();
-#endif // PRINT_CLOCKS
 		}
-#ifdef PRINT_CLOCKS
-		printf(time_format, (double)(clock_gemm) / CLOCKS_PER_SEC); clock1 = clock();
-#endif
 		// ~~~~~~~~~~~~~~
 		// Matrix inverse
 		// ~~~~~~~~~~~~~~
 		checkRegCudaErrors(cublasDmatinvBatched(handle, K, d_xtwxA, K, d_xtwxRA, K, d_info, groupn));
-#ifdef PRINT_CLOCKS
-		printf(time_format, (double)(clock() - clock1) / CLOCKS_PER_SEC); clock1 = clock();
-#endif
 		// ~~~~~~~~~~~~~~
 		// calculate beta
 		// ~~~~~~~~~~~~~~
@@ -906,16 +735,7 @@ bool CGWmodelCUDA::RegressionOnly(double p, double theta, bool longlat, double b
 			checkRegCudaErrors(cublasDgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, K, 1, K, &one, p_xtwxRA[e], K, p_xtwyA[e], K, &zero, p_betaA[e], K));
 			checkRegCudaErrors(cudaMemcpy((void *)betas.col(i).colmem, p_betaA[e], sizeof(double) * K, cudaMemcpyDeviceToHost));
 		}
-#ifdef PRINT_CLOCKS
-		printf(time_format, (double)(clock() - clock1) / CLOCKS_PER_SEC); clock1 = clock();
-		printf(time_format, (double)(clock() - clock0) / CLOCKS_PER_SEC); clock0 = clock();
-		printf("\n");
-#endif
 	}
-#ifdef PRINT_CLOCKS
-	printf(time_format, (double)(clock() - clock0) / CLOCKS_PER_SEC);
-	printf("\n");
-#endif
 	// ----------------
 	// Free Cuda Memory
 	// ----------------
@@ -965,9 +785,6 @@ double CGWmodelCUDA::CV(double p, double theta, bool longlat, double bw, int ker
 		groupl = smNum * maxThreads / 2;
 	}
 
-#ifdef PRINT_CLOCKS
-	printf("GPU Device: %s. \t Group length: %d\n", devProp.name, groupl);
-#endif // PRINT_CLOCKS
 
 
 	// ============
@@ -996,9 +813,6 @@ double CGWmodelCUDA::CV(double p, double theta, bool longlat, double bw, int ker
 		checkCvCudaErrors(gw_coordinate_rotate_cuda(d_dp, N, theta, maxThreads));
 	}
 	int groups = n / groupl + (n % groupl == 0 ? 0 : 1);
-#ifdef PRINT_CLOCKS
-	printf("%d Groups, %d items per group.\n", groups, groupl);
-#endif // PRINT_CLOCKS
 
 	// Single matrix
 	double *d_x, *d_y, *d_xtw, *d_dists, *d_weights;
@@ -1035,19 +849,6 @@ double CGWmodelCUDA::CV(double p, double theta, bool longlat, double bw, int ker
 	p_info = new int[groupl];
 	checkCvCudaErrors(cudaMalloc((void **)&d_info, sizeof(int) * groupl));
 
-#ifdef PRINT_CLOCKS
-	// clocks
-	// ------
-	clock_t clock0 = clock();
-	const char* time_format = "%10.2lfs";
-	printf("%13s", " ");
-	printf("%11s", "xtw");
-	printf("%11s", "gemm");
-	printf("%11s", "Matinv");
-	printf("%11s", "beta");
-	printf("%11s", "Total");
-	printf("\n");
-#endif // PRINT_CLOCKS
 
 	// ----------------
 	// Begin regression
@@ -1060,16 +861,9 @@ double CGWmodelCUDA::CV(double p, double theta, bool longlat, double bw, int ker
 		// ~~~~~~~~~~~~~~~~~~~
 		// Calculate xtwx xtwy
 		// ~~~~~~~~~~~~~~~~~~~
-#ifdef PRINT_CLOCKS
-		printf("Group %5d: ", g);
-		clock_t clock1 = clock(), clock_gemm = 0;
-#endif
 		for (int i = begin; i < end; i++)
 		{
 			size_t e = i - begin;
-#ifdef PRINT_CLOCKS
-			clock_t clocki = clock();
-#endif // PRINT_CLOCKS
 			if (dm_given) { checkCvCudaErrors(cudaMemcpy(d_dists, (void *)dMat.col(i).colmem, sizeof(double) * N, cudaMemcpyHostToDevice)); }
 			else { checkCvCudaErrors(dist_function(d_dp, d_dp, N, n, i, p, d_dists, maxThreads)); }
 			checkCvCudaErrors(gw_weight_cuda(bw, kernel, adaptive, d_dists, d_weights, N, 1, maxThreads));
@@ -1077,13 +871,7 @@ double CGWmodelCUDA::CV(double p, double theta, bool longlat, double bw, int ker
 			checkCvCudaErrors(gw_xtw_cuda(d_x, d_weights, N, K, d_xtw, maxThreads));
 			checkCvCudaErrors(cublasDgemm(handle, CUBLAS_OP_N, CUBLAS_OP_T, K, K, N, &one, d_xtw, K, d_x, K, &zero, p_xtwxA[e], K));
 			checkCvCudaErrors(cublasDgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, K, 1, N, &one, d_xtw, K, d_y, N, &zero, p_xtwyA[e], K));
-#ifdef PRINT_CLOCKS
-			clock_gemm += (clock() - clocki); clocki = clock();
-#endif // PRINT_CLOCKS
 		}
-#ifdef PRINT_CLOCKS
-		printf(time_format, (double)(clock_gemm) / CLOCKS_PER_SEC); clock1 = clock();
-#endif
 		// ~~~~~~~~~~~~~~
 		// Matrix inverse
 		// ~~~~~~~~~~~~~~
@@ -1102,9 +890,6 @@ double CGWmodelCUDA::CV(double p, double theta, bool longlat, double bw, int ker
 				#endif
 			}
 		}
-#ifdef PRINT_CLOCKS
-		printf(time_format, (double)(clock() - clock1) / CLOCKS_PER_SEC); clock1 = clock();
-#endif
 		// ~~~~~~~~~~~~~~
 		// calculate beta
 		// ~~~~~~~~~~~~~~
@@ -1116,16 +901,7 @@ double CGWmodelCUDA::CV(double p, double theta, bool longlat, double bw, int ker
 			checkCvCudaErrors(cublasDdot(handle, K, p_xiA[i], 1, p_betaA[e], 1, &yhat));
 			cv += ((y(i) - yhat) * (y(i) - yhat));
 		}
-#ifdef PRINT_CLOCKS
-		printf(time_format, (double)(clock() - clock1) / CLOCKS_PER_SEC); clock1 = clock();
-		printf(time_format, (double)(clock() - clock0) / CLOCKS_PER_SEC); clock0 = clock();
-		printf("\n");
-#endif
 	}
-#ifdef PRINT_CLOCKS
-	printf(time_format, (double)(clock() - clock0) / CLOCKS_PER_SEC);
-	printf("\n");
-#endif
 	// ----------------
 	// Free Cuda Memory
 	// ----------------
